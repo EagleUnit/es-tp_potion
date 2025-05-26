@@ -3,7 +3,7 @@ Config = {}
 Config.Main = {
     Framework = 'qb', -- 'qb' or 'esx'
     Inventory = 'ox', -- 'qb' or 'esx' or 'ox'
-    Debug = true -- Prints debug statements to the f8 console
+    Debug = true, -- Prints debug statements to the f8 console
     CheckForUpdates = true -- Recommended to keep true to ensure your updated.
 }
 
