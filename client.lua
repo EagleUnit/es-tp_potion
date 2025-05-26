@@ -148,37 +148,8 @@ RegisterNetEvent('es-tp_potion:client:usePotion', function()
     end
 end)
 
---
-local placedPed = nil
-local modelName = 'a_m_y_juggalo_01' -- single NPC model
-
-function spawnNPC()
-    --[[if placedPed and DoesEntityExist(placedPed) then
-        DeleteEntity(placedPed)
-    end--]]
-
-    local playerPed = PlayerPedId()
-    local coords = GetEntityCoords(playerPed)
-    local heading = GetEntityHeading(playerPed)
-    local model = GetHashKey(modelName)
-
-    RequestModel(model)
-    while not HasModelLoaded(model) do Wait(10) end
-
-    -- get safe ground z
-    local foundGround, groundZ = GetGroundZFor_3dCoord(coords.x, coords.y, coords.z + 50.0, false)
-    if not foundGround then
-        groundZ = coords.z -- fallback
-    end
-
-    local ped = CreatePed(4, model, coords.x, coords.y, groundZ + 0.15, heading, true, false)
-    FreezeEntityPosition(ped, true)
-    SetEntityInvincible(ped, true)
-    SetBlockingOfNonTemporaryEvents(ped, true)
-
-    placedPed = ped
-end
-
-RegisterCommand('placeped', function()
-    spawnNPC()
-end, false)
+RegisterNetEvent('es-potions:client:teleportTo', function(coords)
+    local ped = PlayerPedId()
+    SetEntityCoordsNoOffset(ped, coords.x, coords.y, coords.z, false, false, false)
+    debugPrint(string.format("[POTION] Teleport received from server: x=%.2f, y=%.2f, z=%.2f", coords.x, coords.y, coords.z))
+end)
