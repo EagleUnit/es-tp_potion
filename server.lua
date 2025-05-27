@@ -65,9 +65,9 @@ local function CheckVersion()
     if Config.Main.CheckForUpdates then
         PerformHttpRequest('https://raw.githubusercontent.com/EagleUnit/eaglescriptsversions/main/tp_potion.txt', function(err, newestVersion, headers)
             local currentVersion = "^3"..GetResourceMetadata(GetCurrentResourceName(), 'version'):gsub("%.", "^7.^3").."^7"
-            newestVersion = "^3"..newestVersion:sub(1, -2):gsub("%.", "^7.^3").."^7"
+            newestVersion = "^3"..newestVersion:match("^%s*(.-)%s*$"):gsub("%.", "^7.^3").."^7"
             if not newestVersion then print("[es-tp_potion] ^2Currently unable to run a version check.^7") return end
-            print(newestVersion == currentVersion and '[es-tp_potion] ^2You are running the latest version of es-tp_potion!^7 (' .. currentVersion .. ')' or '^1You are currently running an outdated version of es-tp_potion (Current Version: ^7' .. currentVersion .. '^1, Newest Version: ^7' .. newestVersion .. '^1). Please download the newest version on keymaster.fivem.net^7!')
+            print(newestVersion == currentVersion and '[es-tp_potion] ^2You are running the latest version of es-tp_potion!^7 (' .. currentVersion .. ')' or '^1You are currently running an outdated version of es-tp_potion (Current Version: ^7' .. currentVersion .. '^1, Newest Version: ^7' .. newestVersion .. '^1). Please download the newest version at https://github.com/EagleUnit/es-tp_potion^7!')
         end)
     end
 end
