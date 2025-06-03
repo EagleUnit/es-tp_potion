@@ -48,7 +48,7 @@ RegisterNetEvent('es-tp_potion:server:swapPlayers', function(targetServerId, sou
     if not (sourceCoords and sourceCoords.x and sourceCoords.y and sourceCoords.z) then return end
     if not (targetCoords and targetCoords.x and targetCoords.y and targetCoords.z) then return end
 
-    local maxDistance = Config.Potions.TeleportDistance or 60
+    local maxDistance = Config.Potion.TeleportDistance or 60
     local dx = sourceCoords.x - targetCoords.x
     local dy = sourceCoords.y - targetCoords.y
     local dz = sourceCoords.z - targetCoords.z

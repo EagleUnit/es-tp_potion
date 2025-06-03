@@ -67,7 +67,7 @@ function Teleport(ped)
     if not DoesEntityExist(ped) or IsEntityDead(ped) then return end
     effectActive = true
     local pedCoords = GetEntityCoords(ped)
-    local radius = Config.Potions.TeleportDistance or 60
+    local radius = Config.Potion.TeleportDistance or 60
     local myId = PlayerId()
     local nearbyPlayers = {}
     local nearbyPeds = {}
@@ -115,7 +115,7 @@ function Teleport(ped)
     local function teleportToNPCOrPlayer(targetPed, ped)
         local pedCoords = GetEntityCoords(ped)
         local npcCoords = GetEntityCoords(targetPed)
-        if IsPedInAnyVehicle(targetPed, false) and advCfg.Teleport.CarSwap then
+        if IsPedInAnyVehicle(targetPed, false) and Config.Potion.CarSwap then
             local veh = GetVehiclePedIsIn(targetPed, false)
             local seat = -1
 
@@ -136,11 +136,11 @@ function Teleport(ped)
         end
     end
 
-    if Config.Potions.Effects.Teleport and Config.Potions.TeleportSwap then
+    if Config.Potion.Teleport and Config.Potion.TeleportSwap then
         local roll = math.random(1, 100)
-        if roll <= (Config.Potions.SwapChance or 50) then
+        if roll <= (Config.Potion.SwapChance or 50) then
             findNearbyEntities()
-            if Config.Potions.SwapRealPlayers and #nearbyPlayers > 0 then
+            if Config.Potion.SwapRealPlayers and #nearbyPlayers > 0 then
                 local targetPed = nearbyPlayers[math.random(#nearbyPlayers)]
                 local targetServerId = GetPlayerServerId(NetworkGetEntityOwner(targetPed))
                 local targetCoords = GetEntityCoords(targetPed)
@@ -154,11 +154,11 @@ function Teleport(ped)
             end
         end
         doRandomTeleport()
-    elseif Config.Potions.Effects.Teleport then
+    elseif Config.Potion.Teleport then
         doRandomTeleport()
-    elseif Config.Potions.TeleportSwap then
+    elseif Config.Potion.TeleportSwap then
         findNearbyEntities()
-        if Config.Potions.SwapRealPlayers and #nearbyPlayers > 0 then
+        if Config.Potion.SwapRealPlayers and #nearbyPlayers > 0 then
             local targetPed = nearbyPlayers[math.random(#nearbyPlayers)]
             local targetServerId = GetPlayerServerId(NetworkGetEntityOwner(targetPed))
             local targetCoords = GetEntityCoords(targetPed)
