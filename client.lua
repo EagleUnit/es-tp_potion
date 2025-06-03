@@ -60,10 +60,14 @@ RegisterNetEvent('es-tp_potion:client:usePotion', function()
 
     DeleteEntity(potionProp)
     debugPrint("[POTION] Potion object deleted.")
+    Teleport(ped)
+end)
 
+function Teleport(ped)
     if not DoesEntityExist(ped) or IsEntityDead(ped) then return end
+    effectActive = true
     local pedCoords = GetEntityCoords(ped)
-    local radius = Config.Potion.TeleportDistance or 60
+    local radius = Config.Potions.TeleportDistance or 60
     local myId = PlayerId()
     local nearbyPlayers = {}
     local nearbyPeds = {}
@@ -102,53 +106,72 @@ RegisterNetEvent('es-tp_potion:client:usePotion', function()
         local offsetY = math.random(-radius * 100, radius * 100) / 100
         local newCoords = pedCoords + vector3(offsetX, offsetY, 0)
         local foundGround, groundZ = GetGroundZFor_3dCoord(newCoords.x, newCoords.y, newCoords.z + 50.0, false)
-        newCoords = vector3(newCoords.x, newCoords.y, foundGround and groundZ or newCoords.z)
+        if foundGround then
+            newCoords = vector3(newCoords.x, newCoords.y, groundZ)
+        end
         SetEntityCoordsNoOffset(ped, newCoords.x, newCoords.y, newCoords.z, false, false, false)
     end
 
-    if Config.Potion.Teleport and Config.Potion.TeleportSwap then
+    local function teleportToNPCOrPlayer(targetPed, ped)
+        local pedCoords = GetEntityCoords(ped)
+        local npcCoords = GetEntityCoords(targetPed)
+        if IsPedInAnyVehicle(targetPed, false) and advCfg.Teleport.CarSwap then
+            local veh = GetVehiclePedIsIn(targetPed, false)
+            local seat = -1
+
+            ClearPedTasksImmediately(targetPed)
+            TaskLeaveVehicle(targetPed, veh, 4160)
+            Wait(300)
+
+            TaskWarpPedIntoVehicle(ped, veh, seat)
+            SetEntityCoordsNoOffset(targetPed, pedCoords.x, pedCoords.y, pedCoords.z, false, false, false)
+            debugPrint("[POTION] Swapped and stole their vehicle")
+        else
+            ClearPedTasksImmediately(targetPed)
+            Wait(100)
+            SetEntityCoordsNoOffset(targetPed, pedCoords.x, pedCoords.y, pedCoords.z, false, false, false)
+            Wait(100)
+            SetEntityCoordsNoOffset(ped, npcCoords.x, npcCoords.y, npcCoords.z, false, false, false)
+            debugPrint("[POTION] Swapped places with a nearby ped")
+        end
+    end
+
+    if Config.Potions.Effects.Teleport and Config.Potions.TeleportSwap then
         local roll = math.random(1, 100)
-        if roll <= (Config.Potion.SwapChance or 50) then
+        if roll <= (Config.Potions.SwapChance or 50) then
             findNearbyEntities()
-            if Config.Potion.SwapRealPlayers and #nearbyPlayers > 0 then
-                debugPrint("[POTION] Attempting to swap places with a nearby player...")
-                local targetPed = nearbyPlayers[math.random(1, #nearbyPlayers)]
+            if Config.Potions.SwapRealPlayers and #nearbyPlayers > 0 then
+                local targetPed = nearbyPlayers[math.random(#nearbyPlayers)]
                 local targetServerId = GetPlayerServerId(NetworkGetEntityOwner(targetPed))
                 local targetCoords = GetEntityCoords(targetPed)
-                TriggerServerEvent('es-potions:server:swapPlayers', targetServerId, pedCoords, targetCoords)
+                TriggerServerEvent('es-tp_potion:server:swapPlayers', targetServerId, pedCoords, targetCoords)
+                effectActive = false
                 return
             elseif #nearbyPeds > 0 then
-                debugPrint("[POTION] Swapping places with a nearby NPC.")
-                local npc = nearbyPeds[math.random(1, #nearbyPeds)]
-                local npcCoords = GetEntityCoords(npc)
-                SetEntityCoordsNoOffset(npc, pedCoords.x, pedCoords.y, pedCoords.z, false, false, false)
-                Wait(100)
-                SetEntityCoordsNoOffset(ped, npcCoords.x, npcCoords.y, npcCoords.z, false, false, false)
+                teleportToNPCOrPlayer(nearbyPeds[math.random(#nearbyPeds)], PlayerPedId())
+                effectActive = false
                 return
             end
         end
         doRandomTeleport()
-    elseif Config.Potion.Teleport then
+    elseif Config.Potions.Effects.Teleport then
         doRandomTeleport()
-    elseif Config.Potion.TeleportSwap then
+    elseif Config.Potions.TeleportSwap then
         findNearbyEntities()
-        if Config.Potion.SwapRealPlayers and #nearbyPlayers > 0 then
-            local targetPed = nearbyPlayers[math.random(1, #nearbyPlayers)]
+        if Config.Potions.SwapRealPlayers and #nearbyPlayers > 0 then
+            local targetPed = nearbyPlayers[math.random(#nearbyPlayers)]
             local targetServerId = GetPlayerServerId(NetworkGetEntityOwner(targetPed))
             local targetCoords = GetEntityCoords(targetPed)
-            TriggerServerEvent('es-potions:server:swapPlayers', targetServerId, pedCoords, targetCoords)
+            TriggerServerEvent('es-tp_potion:server:swapPlayers', targetServerId, pedCoords, targetCoords)
         elseif #nearbyPeds > 0 then
-            debugPrint("[POTION] Swapping places with a nearby NPC.")
-            local npc = nearbyPeds[math.random(1, #nearbyPeds)]
-            local npcCoords = GetEntityCoords(npc)
-            SetEntityCoordsNoOffset(npc, pedCoords.x, pedCoords.y, pedCoords.z, false, false, false)
-            Wait(100)
-            SetEntityCoordsNoOffset(ped, npcCoords.x, npcCoords.y, npcCoords.z, false, false, false)
+            teleportToNPCOrPlayer(nearbyPeds[math.random(#nearbyPeds)], PlayerPedId())
         end
     end
-end)
 
-RegisterNetEvent('es-potions:client:teleportTo', function(coords)
+    effectActive = false
+end
+
+RegisterNetEvent('es-tp_potion:client:teleportTo', function(coords)
     local ped = PlayerPedId()
     SetEntityCoordsNoOffset(ped, coords.x, coords.y, coords.z, false, false, false)
     debugPrint(string.format("[POTION] Teleport received from server: x=%.2f, y=%.2f, z=%.2f", coords.x, coords.y, coords.z))
